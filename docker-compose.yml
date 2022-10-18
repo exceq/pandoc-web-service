@@ -1,0 +1,59 @@
+version: "3.9"
+services:
+  web:
+#    depends_on:
+#      - db
+    build:
+      context: web\
+
+#  db:
+#    image: postgres:14.5
+#    restart: always
+#    ports:
+#      - "15432:5432"
+#    env_file:
+#      - ".env"
+#    volumes:
+#      - "./src/main/resources/sql/init.sql:/docker-entrypoint-initdb.d/init.sql"
+#      - "pgdata:/var/lib/postgresql/data"
+
+#  consumer:
+#    depends_on:
+#      - rabbitmq
+#      - redis
+#    build: C:\Users\mrmis\PycharmProjects\python-mq-consumer
+#    restart: on-failure
+#    env_file:
+#      - ".env"
+
+  rabbitmq:
+    hostname: $RABBIT_HOSTNAME
+    image: rabbitmq:management
+    ports:
+      - "15672:15672"
+    env_file:
+      - ".env"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+#  nginx:
+#    hostname: $APP_HOSTNAME
+#    build: nginx/.
+#    ports:
+#      - "8080:80"
+#    depends_on:
+#      - web
+#    env_file:
+#      - ".env"
+#
+#  redis:
+#    hostname: $CACHE_HOST
+#    image: redis
+#    env_file:
+#      - ".env"
+
+volumes:
+  pgdata:
