@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Raleway" rel="stylesheet">
+    <link rel="stylesheet" href="/static/resume.css"/>
+</head>
+<body>
+<div>
+    <form id="form" style="float:left; margin:0; width:50%">
+        <textarea id="markdown" cols="90" rows="50" placeholder="# Hello"></textarea>
+        <br>
+        <input id="submit" type="submit" value="Открыть в новой вкладке">
+        <input id="example" value="Загрузить пример резюме" type="button"/>
+        <input id="download_pdf" value="Скачать в формате PDF" type="button"/>
+
+    </form>
+    <div style="float:left; margin:0; width:50%;">
+        <div id="message">Preview placeholder</div>
+    </div>
+</div>
+
+</body>
+<style>
+    #message {
+        zoom: 0.7;
+        width: 21cm;
+        height: 29.7cm;
+        padding: 30mm 45mm 30mm 45mm;
+        border: solid #4d4d4d 1px;
+        align-self: baseline;
+    }
+</style>
+<script>
+    function delay(callback, ms) {
+        let timer = 0;
+        return function () {
+            const context = this, args = arguments;
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                callback.apply(context, args);
+            }, ms || 0);
+        };
+    }
+
+    let htmlPreviewCallback = function () {
+        $.ajax({
+            url: '/preview',
+            method: 'POST',
+            data: JSON.stringify({markdown: $('#markdown').val()}),
+            contentType: "application/json",
+            dataType: 'html',
+            success: function (data) {
+                $('#message').html(data);
+            }
+        });
+    };
+    $('#markdown').keyup(delay(htmlPreviewCallback, 500));
+
+    $('#example').click(function () {
+        $.ajax({
+            url: '/example',
+            method: 'get',
+            dataType: 'html',
+            success: function (data) {
+                $('#markdown').val(data);
+                htmlPreviewCallback();
+            }
+        });
+    });
+</script>
+</html>
