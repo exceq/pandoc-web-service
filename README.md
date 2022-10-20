@@ -9,4 +9,4 @@
 в формате `md`
 
 
-[Веб-страница](http://localhost:8081/static/page.html) с превью:
+Веб-страница с превью: [http://localhost:8081/static/page.html](http://localhost:8081/static/page.html)
