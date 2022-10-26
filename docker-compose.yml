@@ -3,19 +3,22 @@ services:
   web:
     build:
       context: web
-    ports:
-      - "8080:8000"
+    volumes:
+      - "./web/app/static:/app/app/samples/static" # временно, чтобы можно было менять html без перезапуска докера
 
   file-generator:
     build:
       context: file-generator
-    ports:
-      - "8081:8000"
     volumes:
       - "./file-generator/out:/app/out"
-      - "./file-generator/samples:/app/app/samples" # временно, чтобы можно было менять html без перезапуска докера
-      # потом в Dockerfile копировать в папку /app/app/samples
 
+  nginx:
+    hostname: $APP_HOSTNAME
+    build: nginx/.
+    ports:
+      - "8080:80"
+    env_file:
+      - ".env"
 #  db:
 #    image: postgres:14.5
 #    restart: always
@@ -25,16 +28,8 @@ services:
 #      - ".env"
 #    volumes:
 #      - "./src/main/resources/sql/init.sql:/docker-entrypoint-initdb.d/init.sql"
-#      - "pgdata:/var/lib/postgresql/data"
 
-#  consumer:
-#    depends_on:
-#      - rabbitmq
-#      - redis
-#    build: C:\Users\mrmis\PycharmProjects\python-mq-consumer
-#    restart: on-failure
-#    env_file:
-#      - ".env"
+#      - "pgdata:/var/lib/postgresql/data"
 
 #  rabbitmq:
 #    hostname: $RABBIT_HOSTNAME
@@ -47,17 +42,8 @@ services:
 #      test: rabbitmq-diagnostics -q ping
 #      interval: 30s
 #      timeout: 30s
-#      retries: 3
 
-#  nginx:
-#    hostname: $APP_HOSTNAME
-#    build: nginx/.
-#    ports:
-#      - "8080:80"
-#    depends_on:
-#      - web
-#    env_file:
-#      - ".env"
+#      retries: 3
 #
 #  redis:
 #    hostname: $CACHE_HOST

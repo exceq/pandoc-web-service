@@ -45,11 +45,12 @@
         };
     }
 
+    let markdown_textarea = $('#markdown');
     let htmlPreviewCallback = function () {
         $.ajax({
             url: '/preview',
             method: 'POST',
-            data: JSON.stringify({markdown: $('#markdown').val()}),
+            data: JSON.stringify({markdown: markdown_textarea.val()}),
             contentType: "application/json",
             dataType: 'html',
             success: function (data) {
@@ -57,7 +58,7 @@
             }
         });
     };
-    $('#markdown').keyup(delay(htmlPreviewCallback, 500));
+    markdown_textarea.keyup(delay(htmlPreviewCallback, 500));
 
     $('#example').click(function () {
         $.ajax({
@@ -65,8 +66,35 @@
             method: 'get',
             dataType: 'html',
             success: function (data) {
-                $('#markdown').val(data);
+                markdown_textarea.val(data);
                 htmlPreviewCallback();
+            }
+        });
+    });
+
+    function download(filename, text) {
+        var pom = document.createElement('a');
+        pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        pom.setAttribute('download', filename);
+
+        if (document.createEvent) {
+            var event = document.createEvent('MouseEvents');
+            event.initEvent('click', true, true);
+            pom.dispatchEvent(event);
+        } else {
+            pom.click();
+        }
+    }
+
+    $('#download_pdf').click(function () {
+        $.ajax({
+            url: '/files/pdf',
+            method: 'post',
+            data: JSON.stringify({markdown: markdown_textarea.val()}),
+            contentType: "application/json",
+            dataType: 'html',
+            success: function (data) {
+                download("file.pdf", data)
             }
         });
     });
