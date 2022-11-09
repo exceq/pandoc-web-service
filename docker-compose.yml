@@ -19,6 +19,20 @@ services:
       - "8080:80"
     env_file:
       - ".env"
+
+  storage:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio124
+    command: server /export --console-address ":9001"
+    volumes:
+      - ./minio/data:/export
+      - ./minio/config:/root/.minio
+
 #  db:
 #    image: postgres:14.5
 #    restart: always

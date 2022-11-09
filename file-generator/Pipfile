@@ -8,6 +8,7 @@ fastapi = "*"
 pypandoc = "*"
 uvicorn = "*"
 typing-extensions = "*"
+minio = "*"
 
 [dev-packages]
 

@@ -88,7 +88,7 @@
 
     $('#download_pdf').click(function () {
         $.ajax({
-            url: '/files/pdf',
+            url: '/files/pdf-to-minio',
             method: 'post',
             data: JSON.stringify({markdown: markdown_textarea.val()}),
             contentType: "application/json",
