@@ -1,8 +1,11 @@
 version: "3.9"
 services:
   web:
+    hostname: $APP_HOSTNAME
     build:
       context: web
+    env_file:
+      - ".env"
     volumes:
       - "./web/app/static:/app/app/samples/static" # временно, чтобы можно было менять html без перезапуска докера
 
@@ -11,6 +14,8 @@ services:
       context: file-generator
     volumes:
       - "./file-generator/out:/app/out"
+    env_file:
+      - ".env"
 
   nginx:
     hostname: $APP_HOSTNAME
@@ -33,31 +38,29 @@ services:
       - ./minio/data:/export
       - ./minio/config:/root/.minio
 
-#  db:
-#    image: postgres:14.5
-#    restart: always
-#    ports:
-#      - "15432:5432"
-#    env_file:
-#      - ".env"
-#    volumes:
-#      - "./src/main/resources/sql/init.sql:/docker-entrypoint-initdb.d/init.sql"
+  db:
+    image: postgres:14.5
+    restart: always
+    ports:
+      - "15432:5432"
+    env_file:
+      - ".env"
+    volumes:
+      - "./db/init.sql:/docker-entrypoint-initdb.d/init.sql"
+      - "./db/pgdata:/var/lib/postgresql/data"
 
-#      - "pgdata:/var/lib/postgresql/data"
-
-#  rabbitmq:
-#    hostname: $RABBIT_HOSTNAME
-#    image: rabbitmq:management
-#    ports:
-#      - "15672:15672"
-#    env_file:
-#      - ".env"
-#    healthcheck:
-#      test: rabbitmq-diagnostics -q ping
-#      interval: 30s
-#      timeout: 30s
-
-#      retries: 3
+  rabbitmq:
+    hostname: $RABBIT_HOSTNAME
+    image: rabbitmq:management
+    ports:
+      - "15672:15672"
+    env_file:
+      - ".env"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
 #
 #  redis:
 #    hostname: $CACHE_HOST

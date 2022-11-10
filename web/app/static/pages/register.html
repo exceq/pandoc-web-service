@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Raleway" rel="stylesheet">
+    <link rel="stylesheet" href="/static/resume.css"/>
+</head>
+<body>
+<div>
+    <div>Введите свой username для регистрации:</div>
+    <form id="form">
+        <input id="username" type=text placeholder="username...">
+        <input id="register" value="Создать аккаунт" type="button"/>
+    </form>
+    <div id="message"></div>
+    <br>
+    <a href="/static/pages/page.html">На главную страницу</a>
+</div>
+
+</body>
+<script>
+    $('#register').click(function () {
+        const data1 = JSON.stringify({username: $('#username').val()});
+        console.log(data1);
+        $.ajax({
+            url: '/user/register',
+            method: 'post',
+            data: data1,
+            dataType: 'html',
+            contentType: "application/json",
+            success: function (data) {
+                let msg = "Успех: " + data;
+                $('#message').text(msg);
+            },
+            error: function (xhr) {
+                let response = JSON.parse(xhr.responseText);
+                let msg = "Ошибка: " + response.detail;
+                $('#message').text(msg);
+            }
+        });
+    });
+</script>
+</html>

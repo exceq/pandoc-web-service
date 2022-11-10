@@ -12,7 +12,8 @@ COPY Pipfile.lock Pipfile.lock
 
 RUN pipenv sync
 
-CMD pipenv run uvicorn app.main:app --host 0.0.0.0 --port 8080
-
 COPY /app /app/app
+WORKDIR /app/app
+CMD pipenv run uvicorn main:app --host 0.0.0.0 --port 8080
+
 

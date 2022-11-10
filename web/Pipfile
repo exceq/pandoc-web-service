@@ -9,6 +9,9 @@ typing-extensions = "*"
 uvicorn = "*"
 pypandoc = "*"
 python-multipart = "*"
+sqlalchemy = "*"
+psycopg2-binary = "*"
+pika = "*"
 
 [dev-packages]
 

@@ -9,6 +9,8 @@ pypandoc = "*"
 uvicorn = "*"
 typing-extensions = "*"
 minio = "*"
+requests = "*"
+pika = "*"
 
 [dev-packages]
 
