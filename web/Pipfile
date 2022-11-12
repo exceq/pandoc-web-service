@@ -12,6 +12,7 @@ python-multipart = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 pika = "*"
+redis = "*"
 
 [dev-packages]
 

@@ -1,7 +1,3 @@
-import hashlib
-import logging
-
-import pypandoc as pd
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
@@ -11,11 +7,14 @@ from core.db.models import File, User
 from deps import get_db
 from model.queue import GeneratePdfMessage
 from model.resume import Item, SavePdfRequest, UpdateFilePathRequest
+from service.hash_util import generate_hash
 from service.queue import QueueConnection
+from service.resume import get_preview
 
 router = APIRouter()
 
 queue = QueueConnection()
+
 
 @router.get("/example", response_class=HTMLResponse)
 async def example():
@@ -24,8 +23,7 @@ async def example():
 
 @router.post("/preview", response_class=HTMLResponse)
 async def say_hello(item: Item):
-    return pd.convert_text(source=item.markdown, format='markdown', to='html',
-                           extra_args=['-s', '--section-divs'])
+    return get_preview(item)
 
 
 @router.put("/{file_id}")
@@ -46,7 +44,7 @@ async def save_pdf(req: SavePdfRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f"Пользователь с id '{req.user_id}' не найден")
 
-    hex_dig = hashlib.sha256(bytes(text, 'utf-8')).hexdigest()
+    hex_dig = generate_hash(text)
     file = File(user_id=req.user_id, full_text=text, hash=hex_dig)
     db.add(file)
     db.commit()

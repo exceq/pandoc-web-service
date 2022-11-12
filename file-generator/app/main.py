@@ -1,8 +1,6 @@
-import datetime
 import json
 from os import getenv
 
-import pika
 import pypandoc as pd
 import requests
 from fastapi import FastAPI
@@ -10,6 +8,7 @@ from minio.helpers import ObjectWriteResult
 from pydantic import BaseModel
 from starlette.staticfiles import StaticFiles
 
+from .queue import QueueConnection
 from .storage_connect import *
 
 app_hostname = getenv("APP_HOSTNAME")
@@ -42,13 +41,14 @@ def handle_message(ch, method, properties, body: bytes):
     try:
         message: GeneratePdfMessage = json.loads(body, object_hook=lambda d: GeneratePdfMessage(**d))
         html = pd.convert_text(source=message.markdown, format='markdown', to='html',
-                               extra_args=['-s', '--section-divs', '-H', default_header_path, '--css', default_css_path])
-        filename = f'pdf-{message.file_id}-{datetime.date.today()}.pdf'
-        filepath = f'./out/' + filename
+                               extra_args=['-s', '--section-divs', '-H', default_header_path, '--css',
+                                           default_css_path])
+        filename = f'{message.file_id}.pdf'
+        filepath = f'out/' + filename
         pd.convert_text(source=html, format='html', to='pdf', outputfile=filepath)
         file: ObjectWriteResult = put_file("pdf", filename, filepath)
-        send_put_request(filename, message)
         os.remove(filepath)
+        send_put_request(filename, message)
     except Exception as e:
         print("!!! ERROR !!!", e)
 
@@ -60,13 +60,6 @@ def send_put_request(filename: str, message: GeneratePdfMessage):
     requests_put.raise_for_status()
 
 
-GENERATE_PDF_QUEUE = 'generate-pdf'
-user = getenv("RABBITMQ_DEFAULT_USER")
-password = getenv("RABBITMQ_DEFAULT_PASS")
-hostname = getenv("RABBIT_HOSTNAME")
-connection = pika.BlockingConnection(pika.URLParameters(f"amqp://{user}:{password}@{hostname}:5672/%2F"))
-channel = connection.channel()
-
-channel.queue_declare(queue=GENERATE_PDF_QUEUE)
-channel.basic_consume(queue=GENERATE_PDF_QUEUE, on_message_callback=handle_message)
-channel.start_consuming()
+queue: QueueConnection = QueueConnection()
+queue.channel.basic_consume(queue=queue.GENERATE_PDF_QUEUE, on_message_callback=handle_message)
+queue.channel.start_consuming()

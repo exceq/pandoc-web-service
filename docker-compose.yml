@@ -61,12 +61,12 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
-#
-#  redis:
-#    hostname: $CACHE_HOST
-#    image: redis
-#    env_file:
-#      - ".env"
+
+  redis:
+    hostname: $CACHE_HOST
+    image: redis
+    env_file:
+      - ".env"
 
 #volumes:
 #  pgdata:
