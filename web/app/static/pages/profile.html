@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Raleway" rel="stylesheet">
+    <link rel="stylesheet" href="/static/resume.css"/>
+</head>
+<body>
+<div>
+    <div>Введите user_id для просмотра профиля:</div>
+    <form id="form">
+        <input id="user_id" type=number placeholder="Введите ваш user_id">
+        <input id="info" value="Получить инфу" type="button"/>
+    </form>
+    <div id="message"></div>
+    <br>
+    <a href="/">На главную страницу</a>
+    <div id="container"></div>
+</div>
+
+</body>
+<script type="text/x-handlebars-template" id="tmpl">
+    <div>
+        <span>{{filename}}</span>
+        <span><a href="/preview?id={{id}}">View</a></span>
+    </div>
+</script>
+<script>
+    const template = Handlebars.compile($("#tmpl").html());
+    $('#register').click(function () {
+        const data1 = JSON.stringify({username: $('#username').val()});
+        console.log(data1);
+        $.ajax({
+            url: '/user/info',
+            method: 'post',
+            data: data1,
+            dataType: 'html',
+            contentType: "application/json",
+            success: function (data) {
+                let container = $("#container");
+                container.children().clearQueue(); // todo удалять предыдущие ссылки
+                let resp = JSON.parse(data);
+                $('#message').text(data);
+                resp.files.forEach(value => container.append(template(value)).fadeIn());
+            },
+            error: function (xhr) {
+                let response = JSON.parse(xhr.responseText);
+                let msg = "Ошибка: " + response.detail;
+                $('#message').text(msg);
+            }
+        });
+    });
+</script>

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -11,3 +13,9 @@ class SavePdfRequest(Item):
 
 class UpdateFilePathRequest(BaseModel):
     filepath: str
+
+
+class FileDto(BaseModel):
+    id: int
+    filename: str
+    created: datetime

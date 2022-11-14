@@ -1,9 +1,12 @@
+from typing import List
+
 from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 from starlette import status
 
-from core.db.models import User
+from core.db.models import User, File
 from deps import get_db
+from model.resume import FileDto
 from model.user import UserDto, RegisterRequest
 
 router = APIRouter()
@@ -18,6 +21,22 @@ async def register(req: RegisterRequest, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     return user
+
+
+@router.get("/info")
+async def info(user_id: int, db: Session = Depends(get_db)):
+    user: User = db.query(User).filter_by(id=user_id).one_or_none()
+    files: List[File] = db.query(File).filter_by(user_id=user_id).all()
+    files_dto = [map_file_to_file_dto(i) for i in files]
+    return {"user": UserDto(), "files": files_dto}
+
+
+def map_file_to_file_dto(file: File) -> FileDto:
+    fd = FileDto()
+    fd.created = file.created
+    fd.id = file.id
+    fd.filename = file.path_to_pdf
+    return fd
 
 
 def find_by_username(username: str, db: Session):
