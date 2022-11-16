@@ -25,18 +25,10 @@ async def register(req: RegisterRequest, db: Session = Depends(get_db)):
 
 @router.get("/info")
 async def info(user_id: int, db: Session = Depends(get_db)):
-    user: User = db.query(User).filter_by(id=user_id).one_or_none()
+    user: User = db.query(User).filter_by(id=user_id).one()
     files: List[File] = db.query(File).filter_by(user_id=user_id).all()
-    files_dto = [map_file_to_file_dto(i) for i in files]
-    return {"user": UserDto(), "files": files_dto}
-
-
-def map_file_to_file_dto(file: File) -> FileDto:
-    fd = FileDto()
-    fd.created = file.created
-    fd.id = file.id
-    fd.filename = file.path_to_pdf
-    return fd
+    files_dto = [FileDto(created=file.created, id=file.id, filename=file.path_to_pdf) for file in files]
+    return {"user": user, "files": files_dto}
 
 
 def find_by_username(username: str, db: Session):

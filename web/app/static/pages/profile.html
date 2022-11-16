@@ -8,48 +8,151 @@
     <link rel="stylesheet" href="/static/resume.css"/>
 </head>
 <body>
-<div>
+<div style="float:left; margin:0; width:30%">
     <div>Введите user_id для просмотра профиля:</div>
     <form id="form">
         <input id="user_id" type=number placeholder="Введите ваш user_id">
         <input id="info" value="Получить инфу" type="button"/>
     </form>
+    <a href="/">На главную страницу</a>
     <div id="message"></div>
     <br>
-    <a href="/">На главную страницу</a>
     <div id="container"></div>
 </div>
 
+<div style="float:left; margin:0; width:70%;">
+    <div id="preview">Preview placeholder</div>
+</div>
+
 </body>
-<script type="text/x-handlebars-template" id="tmpl">
-    <div>
-        <span>{{filename}}</span>
-        <span><a href="/preview?id={{id}}">View</a></span>
-    </div>
-</script>
+<style>
+    #preview {
+        zoom: 0.7;
+        width: 21cm;
+        height: 29.7cm;
+        padding: 30mm 45mm 30mm 45mm;
+        border: solid #4d4d4d 1px;
+        align-self: baseline;
+    }
+
+    .btn_del {
+        background-color: indianred;
+    }
+
+    .btn_dl {
+        background-color: aquamarine;
+    }
+
+    .btn_del:hover {
+        background-color: darkred;
+        transition: 0.7s;
+    }
+
+    .btn_dl:hover {
+        background-color: cadetblue;
+        transition: 0.7s;
+    }
+</style>
 <script>
-    const template = Handlebars.compile($("#tmpl").html());
-    $('#register').click(function () {
-        const data1 = JSON.stringify({username: $('#username').val()});
-        console.log(data1);
+
+    let info_callback = function () {
         $.ajax({
-            url: '/user/info',
-            method: 'post',
-            data: data1,
+            url: '/user/info?user_id=' + $('#user_id').val(),
+            method: 'get',
             dataType: 'html',
-            contentType: "application/json",
             success: function (data) {
-                let container = $("#container");
-                container.children().clearQueue(); // todo удалять предыдущие ссылки
-                let resp = JSON.parse(data);
-                $('#message').text(data);
-                resp.files.forEach(value => container.append(template(value)).fadeIn());
+                $('#message').text('');
+                $("#container").html(JSON.parse(data).files.map(template));
             },
-            error: function (xhr) {
-                let response = JSON.parse(xhr.responseText);
-                let msg = "Ошибка: " + response.detail;
-                $('#message').text(msg);
-            }
+            error: on_error_callback
         });
-    });
+    };
+    $('#info').click(info_callback);
+
+
+    let on_error_callback = function (xhr) {
+        let response = JSON.parse(xhr.responseText);
+        let errorMessage = response.type
+            ? response.type
+            : response.detail
+                ? response.detail[0].msg
+                : 'ошибка сервера';
+        let msg = "Ошибка: " + errorMessage;
+        $('#message').text(msg);
+    }
+
+    let preview_callback = function (id) {
+        $.ajax({
+            url: '/resume/' + id,
+            method: 'get',
+            dataType: 'html',
+            success: function (data) {
+                $("#preview").html(data);
+            },
+            error: on_error_callback
+        });
+    };
+    let delete_callback = function (id) {
+        $.ajax({
+            url: '/resume/' + id,
+            method: 'delete',
+            dataType: 'html',
+            success: function (data) {
+                info_callback();
+            },
+            error: on_error_callback
+        });
+    };
+
+    function download(filename, data) {
+
+        // set the blog type to final pdf
+        const file = new Blob([data]); //, {type: 'application/pdf'});
+
+        // process to auto download it
+        const fileURL = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = fileURL;
+        link.download = filename;
+        link.click();
+    }
+
+    let download_callback = function (id) {
+        $.ajax({
+            url: '/resume/download/' + id,
+            method: 'get',
+            dataType: 'binary',
+            xhrFields: {
+                'responseType': 'blob'
+            },
+            success: function (data) {
+                var blob = new Blob([data]);
+                var link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = id + ".pdf";
+                link.click();
+            },
+            error: on_error_callback
+        });
+    };
+
+    function template(data) {
+        return `
+<div id="${data.id}">
+    <span>Дата: ${data.created} </span>
+    <br>
+    <span>Название файла: ${data.filename}</span>
+    <br>
+    <span>
+        <span>Действия: </span>
+        <button class="preview_btn" onclick="preview_callback(${data.id})">View</button>
+        <button class="btn_dl" onclick="download_callback(${data.id})">Download</button>
+        <button class="btn_del" onclick="delete_callback(${data.id})">Delete</button>
+        <a href="/resume/download/${data.id}">Download link</a>
+    </span>
+    <br>
+    <br>
+<div>
+`
+    }
 </script>

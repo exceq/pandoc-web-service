@@ -5,5 +5,5 @@ def get_db():
     try:
         db = session()
         yield db
-    except:
+    finally:
         db.close()

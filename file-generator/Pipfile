@@ -11,6 +11,7 @@ typing-extensions = "*"
 minio = "*"
 requests = "*"
 pika = "*"
+aio-pika = "*"
 
 [dev-packages]
 

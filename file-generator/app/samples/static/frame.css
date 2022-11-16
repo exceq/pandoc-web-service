@@ -1,0 +1,11 @@
+body {
+    width: 21cm;
+    height: 29.7cm;
+    padding: 30mm 45mm 30mm 45mm;
+    align-self: baseline;
+    /*border: solid #4d4d4d 1px;*/
+
+    /*фикс бага, когда последнее слово переносится на другую строку*/
+    white-space:nowrap;
+    zoom: 1.4;
+}

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -17,5 +18,5 @@ class UpdateFilePathRequest(BaseModel):
 
 class FileDto(BaseModel):
     id: int
-    filename: str
+    filename: Optional[str]
     created: datetime

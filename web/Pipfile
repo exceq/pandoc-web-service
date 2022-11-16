@@ -13,6 +13,7 @@ sqlalchemy = "*"
 psycopg2-binary = "*"
 pika = "*"
 redis = "*"
+minio = "*"
 
 [dev-packages]
 

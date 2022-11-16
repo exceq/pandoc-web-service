@@ -30,4 +30,4 @@ class QueueConnection:
         if self.channel.is_closed:
             self.channel = self.connection.channel()
 
-        self.channel.basic_publish('', self.GENERATE_PDF_QUEUE, body=bytes(json.dumps(msg.__dict__), 'utf-8'))
+        self.channel.basic_publish('', self.GENERATE_PDF_QUEUE, body=bytes(json.dumps(msg.__dict__, ensure_ascii=False), 'utf-8'))

@@ -4,6 +4,11 @@ services:
     hostname: $APP_HOSTNAME
     build:
       context: web
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      db:
+        condition: service_started
     env_file:
       - ".env"
     volumes:
@@ -12,6 +17,9 @@ services:
   file-generator:
     build:
       context: file-generator
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - "./file-generator/out:/app/out"
     env_file:
@@ -20,6 +28,9 @@ services:
   nginx:
     hostname: $APP_HOSTNAME
     build: nginx/.
+    depends_on:
+      web:
+        condition: service_started
     ports:
       - "8080:80"
     env_file:
