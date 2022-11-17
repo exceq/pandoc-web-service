@@ -15,6 +15,7 @@ from service.hash_util import generate_hash
 from service.queue import QueueConnection
 from service.resume import get_preview, get_preview_by_id
 from service.storage import client
+from uvicorn.main import logger
 
 router = APIRouter()
 
@@ -82,7 +83,8 @@ async def save_pdf(req: SavePdfRequest, db: Session = Depends(get_db)):
                             detail=f"Пользователь с id '{req.user_id}' не найден")
 
     hex_dig = generate_hash(text)
-    file: Optional[File] = try_find_saved_pdf(req, hex_dig, db)
+    file: File = try_find_saved_pdf(req, hex_dig, db)
+    logger.info(file)
     if file:
         return await download(file.id, db) if file.path_to_pdf else 'wait'
     file = File(user_id=req.user_id, full_text=text, hash=hex_dig)
@@ -90,10 +92,13 @@ async def save_pdf(req: SavePdfRequest, db: Session = Depends(get_db)):
     db.commit()
     try:
         queue.send_generate_pdf_message(GeneratePdfMessage(file.id, file.full_text))
-    except ConnectionResetError as e:
-        queue.send_generate_pdf_message(GeneratePdfMessage(file.id, file.full_text))
+    # except ConnectionResetError as e:
+    except Exception as e:
+        db.delete(file)
+        db.commit()
+        return "error"
     return "ok"
 
 
-def try_find_saved_pdf(req: SavePdfRequest, hex_dig: str, db: Session) -> Optional[File]:
+def try_find_saved_pdf(req: SavePdfRequest, hex_dig: str, db: Session) -> File:
     return db.query(File).filter_by(user_id=req.user_id, hash=hex_dig).one_or_none()

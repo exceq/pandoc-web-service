@@ -54,6 +54,7 @@ def handle_message(body: bytes):
         os.mkdir('out')
     pd.convert_text(source=html, format='html', to='pdf', outputfile=filepath, extra_args=html_to_pdf_args)
     file: ObjectWriteResult = put_file("pdf", filename, filepath)
+    # todo save pandoc output file in memory
     os.remove(filepath)
     send_put_request(filename, message)
     logger.info(f'success file_id={message.file_id}, filename={filename}')
