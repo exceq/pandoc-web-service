@@ -1,7 +1,6 @@
 version: "3.9"
 services:
   web:
-    hostname: $APP_HOSTNAME
     build:
       context: web
     depends_on:
@@ -9,6 +8,8 @@ services:
         condition: service_healthy
       db:
         condition: service_started
+    links:
+      - "storage:$STORAGE_HOSTNAME"
     env_file:
       - ".env"
     volumes:
@@ -21,7 +22,7 @@ services:
       rabbitmq:
         condition: service_healthy
     volumes:
-      - "./file-generator/out:/app/out"
+      - "./file-generator/out:/app/app/out"
     env_file:
       - ".env"
 
@@ -33,17 +34,18 @@ services:
         condition: service_started
     ports:
       - "8080:80"
+      - "9090:9000"
     env_file:
       - ".env"
 
   storage:
+    hostname: $STORAGE_HOSTNAME
     image: minio/minio
     ports:
       - "9000:9000"
       - "9001:9001"
-    environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio124
+    env_file:
+      - ".env"
     command: server /export --console-address ":9001"
     volumes:
       - ./minio/data:/export

@@ -1,5 +1,4 @@
 import json
-from os import getenv
 
 import pypandoc as pd
 import requests
@@ -14,9 +13,7 @@ default_css_path: str = 'samples/static/resume.css'
 default_css_frame_path: str = 'samples/static/frame.css'
 default_header_path: str = 'samples/templates/header.html'
 
-html_to_pdf_args = ['-s',
-                    '--section-divs',
-                    '-H', default_header_path,
+html_to_pdf_args = ['-H', default_header_path,
                     '--css', default_css_path,
                     '--css', default_css_frame_path,
                     '--pdf-engine=wkhtmltopdf',
@@ -25,13 +22,14 @@ html_to_pdf_args = ['-s',
                     '-V', 'margin-left=0',
                     '-V', 'margin-right=0',
                     '-V', 'margin-bottom=0',
-                    '-V', 'title:""',
-                    '--to=html' # иначе по умолчанию генерирует в latex, а это не подходит для wkhtmltopdf
+                    '-V', 'title:',
+                    '--to=html'  # иначе по умолчанию генерирует в latex, а это не подходит для wkhtmltopdf
                     ]
 md_to_html_args = ['-s',
                    '--section-divs',
                    '-H', default_header_path,
                    '--css', default_css_path]
+
 
 class Item(BaseModel):
     markdown: str
@@ -54,7 +52,6 @@ def handle_message(body: bytes):
         os.mkdir('out')
     pd.convert_text(source=html, format='html', to='pdf', outputfile=filepath, extra_args=html_to_pdf_args)
     file: ObjectWriteResult = put_file("pdf", filename, filepath)
-    # todo save pandoc output file in memory
     os.remove(filepath)
     send_put_request(filename, message)
     logger.info(f'success file_id={message.file_id}, filename={filename}')

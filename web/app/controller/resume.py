@@ -1,11 +1,10 @@
-import codecs
-from typing import Optional
-
 import urllib3
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
+from starlette.background import BackgroundTasks
 from starlette.responses import HTMLResponse, Response
+from uvicorn.main import logger
 
 from core.db.models import File, User
 from deps import get_db
@@ -15,7 +14,6 @@ from service.hash_util import generate_hash
 from service.queue import QueueConnection
 from service.resume import get_preview, get_preview_by_id
 from service.storage import client
-from uvicorn.main import logger
 
 router = APIRouter()
 
@@ -53,15 +51,22 @@ class PdfResponse(Response):
     media_type = "application/pdf"
 
 
-@router.get("/download/{id}", response_class=PdfResponse)
+@router.get("/download/{id}")
 async def download(id: int, db: Session = Depends(get_db)):
+    file: File = db.query(File).filter_by(id=id).one_or_none()
+    if not file:
+        return Response({"message", "File not found"}, status_code=404)
+
+    obj = None
     try:
-        file: File = db.query(File).filter_by(id=id).one()
         obj: urllib3.response.HTTPResponse = client.get_object('pdf', file.path_to_pdf)
-        return codecs.decode(obj.data, encoding='utf-8', errors='replace')
+        return Response(obj.data, media_type='application/pdf')
+    except Exception as e:
+        logger.error(e)
     finally:
-        obj.close()
-        obj.release_conn()
+        if obj:
+            obj.close()
+            obj.release_conn()
 
 
 @router.put("/{file_id}")
@@ -86,7 +91,7 @@ async def save_pdf(req: SavePdfRequest, db: Session = Depends(get_db)):
     file: File = try_find_saved_pdf(req, hex_dig, db)
     logger.info(file)
     if file:
-        return await download(file.id, db) if file.path_to_pdf else 'wait'
+        return await download(file.id, db=db) if file.path_to_pdf else 'wait'
     file = File(user_id=req.user_id, full_text=text, hash=hex_dig)
     db.add(file)
     db.commit()

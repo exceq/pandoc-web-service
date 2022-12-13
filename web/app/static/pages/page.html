@@ -76,33 +76,6 @@
         });
     });
 
-    // function download(filename, text) {
-    //     var pom = document.createElement('a');
-    //     pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    //     pom.setAttribute('download', filename);
-    //
-    //     if (document.createEvent) {
-    //         var event = document.createEvent('MouseEvents');
-    //         event.initEvent('click', true, true);
-    //         pom.dispatchEvent(event);
-    //     } else {
-    //         pom.click();
-    //     }
-    // }
-    //
-    // $('#download_pdf').click(function () {
-    //     $.ajax({
-    //         url: '/files/pdf-to-minio',
-    //         method: 'post',
-    //         data: JSON.stringify({markdown: markdown_textarea.val()}),
-    //         contentType: "application/json",
-    //         dataType: 'html',
-    //         success: function (data) {
-    //             download("file.pdf", data)
-    //         }
-    //     });
-    // });
-
     $('#download_pdf').click(function () {
         $.ajax({
             url: '/resume/save-pdf',
@@ -110,14 +83,33 @@
             data: JSON.stringify({markdown: markdown_textarea.val(), user_id: $('#user_id').val()}),
             contentType: "application/json",
             dataType: 'html',
-            success: function (data) {
-                alert("Запрос на генерацию пдф отправлен. Документ будет доступен в лк.")
+            success: function (data, textStatus, xhr) {
+                let contentType = xhr.getResponseHeader('content-type');
+                if (contentType === 'application/pdf' || contentType === 'application/octet-stream') {
+                    var blob = new Blob([data]);
+                    var link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download =  "pdf.pdf";
+                    link.click();
+                } else {
+                    alert("Запрос на генерацию пдф отправлен. Документ будет доступен в лк.")
+                }
             },
             error: function (xhr) {
                 console.log(xhr);
-                let response = JSON.parse(xhr.responseText);
-                let msg = "Ошибка: " + response.detail;
-                console.log(msg);
+                let response;
+                try {
+                    response = JSON.parse(xhr.responseText);
+                    console.log(response);
+                } catch (e) {
+                    console.log(e);
+                    response = xhr.response;
+                }
+                let error_message = response.detail && response.detail[0] ? response.detail[0].msg + " at " + response.detail[0].loc : null;
+                let mess = response.message ?? error_message ?? "Ошибка на сервере";
+                let msg = "Ошибка: " + mess;
+                // console.log(response.detail[0].msg + " at " + response.detail[0].loc);
+                // console.log(msg);
                 alert(msg);
             }
         });

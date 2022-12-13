@@ -104,19 +104,6 @@
         });
     };
 
-    function download(filename, data) {
-
-        // set the blog type to final pdf
-        const file = new Blob([data]); //, {type: 'application/pdf'});
-
-        // process to auto download it
-        const fileURL = URL.createObjectURL(file);
-        const link = document.createElement('a');
-        link.href = fileURL;
-        link.download = filename;
-        link.click();
-    }
-
     let download_callback = function (id) {
         $.ajax({
             url: '/resume/download/' + id,
@@ -148,7 +135,7 @@
         <button class="preview_btn" onclick="preview_callback(${data.id})">View</button>
         <button class="btn_dl" onclick="download_callback(${data.id})">Download</button>
         <button class="btn_del" onclick="delete_callback(${data.id})">Delete</button>
-        <a href="/resume/download/${data.id}">Download link</a>
+        <a href="/resume/download/${data.id}">Open pdf in browser</a>
     </span>
     <br>
     <br>
