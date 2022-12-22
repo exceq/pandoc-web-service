@@ -2,7 +2,6 @@ import urllib3
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from starlette import status
-from starlette.background import BackgroundTasks
 from starlette.responses import HTMLResponse, Response
 from uvicorn.main import logger
 
